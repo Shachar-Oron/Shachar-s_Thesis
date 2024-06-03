@@ -43,13 +43,31 @@ def collect_data_turns(input_file, output_file):
     result_df.to_excel(output_file, index=False, engine='openpyxl')
     print("Data collection complete. Data saved to:", output_file)
 
+
+def process_all_files_in_folder(folder_path, output_folder):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if file.endswith('.xlsx'):
+                input_file = os.path.join(root, file)
+                try:
+                    df = pd.read_excel(input_file, sheet_name='PL', engine='openpyxl')
+                    output_file_name = f"turns_data_{os.path.splitext(file)[0]}.xlsx"
+                    output_file = os.path.join(output_folder, output_file_name)
+                    collect_data_turns(input_file, output_file)
+                except Exception as e:
+                    print(f"Skipping file {input_file}: {e}")
+
+
 def main():
-    # Path to the input Excel file
-    input_file = r"D:\annotations\PD_STRAIGHT\PD01-EF809_STRAIGHT\EF809_straight_OFF_ניתוח.xlsx"
-    # Path to the output Excel file
-    output_file = r"turns_data_EF809_straight_OFF_ניתוח.xlsx"
-    # Call the function
-    collect_data_turns(input_file, output_file)
+    # Path to the folder containing the Excel files
+    folder_path = r"D:\annotations"
+    # Path to the output folder
+    output_folder = r"C:\Users\shach\Documents\Shachar-s_Thesis2\דטה בסיבובים\output_files"
+    # Process all files in the folder
+    process_all_files_in_folder(folder_path, output_folder)
 
 if __name__ == "__main__":
     main()
