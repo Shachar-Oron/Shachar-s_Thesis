@@ -9,7 +9,8 @@ import os
 
 def collect_data_turns(input_file, output_file):
     # Read the Excel file
-    df = pd.read_excel(input_file, sheet_name='PL')
+    df = pd.read_excel(input_file, sheet_name='PL', engine='openpyxl')
+
     # Filter rows based on the criteria with a regex pattern
     filtered_df = df[df['PL_EVENTS'].str.contains(r"תחילת.*סיבוב|סיום.*סיבוב", na=False, regex=True)]
 
@@ -20,19 +21,12 @@ def collect_data_turns(input_file, output_file):
     while i < len(filtered_df):
         current_event = filtered_df.iloc[i]['PL_EVENTS']
         if "תחילת" in current_event:
-            # If next event also contains "תחילת", skip the current row
-            if i < len(filtered_df) - 1 and "תחילת" in filtered_df.iloc[i+1]['PL_EVENTS']:
-                indices_to_keep.append(i+1)
-                i += 2
-                continue
+            # Keep the current row
             indices_to_keep.append(i)
-        elif "סיום" in current_event:
-            # If next event also contains "סיום", skip the next row
-            if i < len(filtered_df) - 1 and "סיום" in filtered_df.iloc[i+1]['PL_EVENTS']:
-                indices_to_keep.append(i)
-                i += 2
-                continue
-            indices_to_keep.append(i)
+            # Check if next row contains "סיום"
+            if i < len(filtered_df) - 1 and "סיום" in filtered_df.iloc[i + 1]['PL_EVENTS']:
+                indices_to_keep.append(i + 1)
+                i += 1
         i += 1
 
     # Create a new DataFrame with only the rows to keep
@@ -46,14 +40,14 @@ def collect_data_turns(input_file, output_file):
         os.remove(output_file)
 
     # Save the cleaned data to a new Excel file
-    result_df.to_excel(output_file, index=False)
+    result_df.to_excel(output_file, index=False, engine='openpyxl')
     print("Data collection complete. Data saved to:", output_file)
 
 def main():
     # Path to the input Excel file
-    input_file = r"D:\annotations\EC\NB325_straight_ניתוח.xlsx"
+    input_file = r"D:\annotations\PD_STRAIGHT\PD01-EF809_STRAIGHT\EF809_straight_OFF_ניתוח.xlsx"
     # Path to the output Excel file
-    output_file = r"turns_data_EC_NB325.xlsx"
+    output_file = r"turns_data_EF809_straight_OFF_ניתוח.xlsx"
     # Call the function
     collect_data_turns(input_file, output_file)
 
