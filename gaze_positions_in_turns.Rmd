@@ -1,0 +1,86 @@
+---
+title: "Gaze Positions in Turns"
+output: 
+  pdf_document:
+    latex_engine: xelatex
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+
+# Load the required libraries
+library(openxlsx)
+library(ggplot2)
+
+# Define the function to create graphs
+create_graphs <- function(file) {
+  # Read the Excel file
+  df <- read.xlsx(file)
+  
+  # Check if the required columns are present
+  if (!("norm_pos_y" %in% colnames(df)) | !("norm_pos_x" %in% colnames(df))) {
+    cat(paste("Required columns not found in file:", file, "\n"))
+    return(NULL)
+  }
+  
+  # Filter out periods with no gaze positions (assuming NA or empty entries)
+  df <- df[!is.na(df$norm_pos_y) & !is.na(df$norm_pos_x), ]
+  
+  # Extract the patient ID from the file name
+  patient_id <- tools::file_path_sans_ext(basename(file))
+  patient_id <- gsub("gaze_data_", "", patient_id)
+  
+  # Create vertical gaze positions graph
+  vertical_plot <- ggplot(df, aes(x = df[, 1], y = norm_pos_y)) +
+    geom_line(na.rm = TRUE) +
+    ggtitle(paste("Vertical gaze positions", patient_id)) +
+    xlab("Time") +
+    ylab("Vertical Gaze Position")
+  
+  # Save the vertical plot
+  vertical_plot_file <- file.path(dirname(file), paste0("vertical_gaze_", patient_id, ".png"))
+  ggsave(vertical_plot_file, vertical_plot)
+  
+  # Introduce the vertical plot
+  print(vertical_plot)
+  
+  # Create horizontal gaze positions graph
+  horizontal_plot <- ggplot(df, aes(x = df[, 1], y = norm_pos_x)) +
+    geom_line(na.rm = TRUE) +
+    ggtitle(paste("Horizontal gaze positions", patient_id)) +
+    xlab("Time") +
+    ylab("Horizontal Gaze Position")
+  
+  # Save the horizontal plot
+  horizontal_plot_file <- file.path(dirname(file), paste0("horizontal_gaze_", patient_id, ".png"))
+  ggsave(horizontal_plot_file, horizontal_plot)
+  
+  # Introduce the horizontal plot
+  print(horizontal_plot)
+  
+  cat(paste("Graphs created for patient:", patient_id, "\n"))
+}
+
+# Set the directory containing the gaze data files
+gaze_data_dir <- "C:/Users/shach/Documents/Shachar-s_Thesis2/דטה בסיבובים/new_clean_outputs"
+
+# List all Excel files in the directory
+files <- list.files(gaze_data_dir, pattern = "*.xlsx", full.names = TRUE)
+
+# Apply the function to all files
+lapply(files, create_graphs)
+
+#summary(cars)
+```
+
+
